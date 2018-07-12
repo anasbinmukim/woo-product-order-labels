@@ -64,24 +64,6 @@
 			});
 	</script>
 
-<style type="text/css">
-	body{ '.$font_family.'}
-	.label-wrapper{ width: 100%; color: #000; }
-	.print-block{ width: 195px; height: auto; float: left; padding: 20px; border: 1px solid #dadada; border-radius: 10px; margin-right: 20px; margin-bottom: 30px; background-color: #FFF; text-align: center; }
-	.print-block table{ padding: 0; margin: 20px 0; border: 1px solid #dadada;border-spacing:0;}
-	.print-block table tr td{ border-bottom: 1px solid #dadada; border-right: 1px solid #dadada; text-align:center; }
-	.print-block table .macro-head td{ font-size: 10px; }
-	.print-block table tr td.last-td{ border-right: none; }
-	.print-block table tr.ingredients td{ border-bottom: none; }
-	tr.ingredients td { font-size: 10px; padding: 5px;}
-	.prod-logo{ margin-top: 5px; }
-	.prod-logo img { width: 100px; }
-	tr.prod-title{ background-color: #c45911;}
-	.prod-title td{ font-size: 14px; text-align:center; color: #FFFD38; padding: 5px; }
-	.block-content{ min-height: 150px; }
-</style>
-
-
 <?php
 if ( isset($_POST['woopol_wclabels_nonce']) && (! isset( $_POST['woopol_wclabels_nonce'] ) || ! wp_verify_nonce( $_POST['woopol_wclabels_nonce'], 'woopol_wclabels_export' ) ) ) {
    //Verifiy not match..
@@ -108,7 +90,7 @@ if ( isset($_POST['woopol_wclabels_nonce']) && (! isset( $_POST['woopol_wclabels
 		 }
 
 		$output_html = wooprod_generate_products_label_html($date_before, $date_after, $order_status);
-		//echo $output_html;
+
 		$output_css = wooprod_generate_products_label_css();
 
 		$generate_result = generate_products_label_pdf($output_css, $output_html);

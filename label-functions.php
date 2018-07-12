@@ -61,21 +61,28 @@ function wooprod_generate_products_label_css(){
 	$font_family = ' font-family: garuda;';
 	$output_css .= 'body{ '.$font_family.'}
 	.label-wrapper{ width: 100%; color: #000; }
-	.print-block{ font-size:10px; width: 150px; height: auto; float: left; padding: 15px 15px; border: 1px solid #dadada; border-radius: 10px; margin-right: 20px; margin-bottom: 20px; background-color: #fff; text-align: center; }
-	.print-block table{ padding: 0; margin: 20px 0; border: 1px solid #dadada;border-spacing:0;}
+	.print-block-item{ float: left; width: 505px; }
+	.print-block{ font-size:10px; height: auto; float: left; padding: 5px 5px; background-color: #fff; text-align: center; border-radius: 10px; border: 1px solid #dadada; margin-right: 5px; margin-bottom: 5px; }
+	.print-block .table-wrap{ border:none; }
+	.content-table{ border: 1px solid #dadada; width:100%; }
+	.print-block table{ padding: 0; margin: 0px 0; border-spacing:0;}
 	.print-block table tr td{ border-bottom: 1px solid #dadada; border-right: 1px solid #dadada; text-align:center; }
+	.print-block table tr .column-td{ border-bottom:none; border-right:none;}
 	.print-block table .macro-head td{ font-size: 8px; }
 	.print-block table .macro-value td{ font-size: 8px; }
 	.print-block table tr td.last-td{ border-right: none; }
 	.print-block table tr.ingredients td{ border-bottom: none; }
+	tr.ingredients td { font-size: 8px; padding: 5px; height: 50px; overflow:hidden; }
 	tr.ingredients td { font-size: 8px; padding: 5px;}
 	.prod-logo{ margin-top: 5px; }
 	.prod-logo img { width: 60px; }
-	.block-top{ font-size: 12px; }
+	.block-top{ font-size: 12px; padding:5px 10px; }
 	tr.prod-title{ background-color: #c45911;}
-	.prod-title td{ font-size: 12px; text-align:center; color: #FFFD38; padding: 5px; }
+	.prod-title td{ font-size: 12px; text-align:center; color: #FFFD38; padding: 5px; width:240px; height:55px; }
+	.prod_name{ display:block; width: 100%; }
+	.attribute_label{ display:block; width: 100%; }
 	.page-break{box-decoration-break: slice; width: 100%; float:left; clear:both;}
-	.block-content{ height:150px; }
+	.block-content{ height:120px; }
 	';
 	$output_css .= '</style>';
 
@@ -106,7 +113,7 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 			'order' => 'DESC',
 			'return' => 'ids',
 	);
-	
+
 	if(isset($product_ids) && (count($product_ids) > 0)){
 			$orders_data = $product_ids;
 	}else{
@@ -115,6 +122,7 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 
 
 	$item_counter = 0;
+	$print_label_data_arr = array();
 	if(isset($orders_data) && (count($orders_data) > 0)){
 		foreach ($orders_data as $key => $order_id) {
 				$order = wc_get_order( $order_id );
@@ -123,11 +131,15 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 						$product_title = '';
 						$order_info = array();
 						$item_id = $lineItem->get_id();
+						$item_quantity = $lineItem->get_quantity();
 						$product_id = $lineItem['product_id'];
 
 						$prod_ingredients = esc_html( get_post_meta( $product_id, '_prod_ingredients', true ) );
 
-						$product_title = trim($lineItem['name']);
+						//$product_title = trim($lineItem['name']);
+						$product_title = get_the_title($product_id);
+
+						$attribute_level = '';
 
 						if ($lineItem['variation_id']) {
 								$variation_id = $lineItem['variation_id'];
@@ -136,7 +148,7 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 
 								$attribute_level = $goal_type . ' ' . $size;
 
-								$product_title = $lineItem['name'] . ', '. $attribute_level;
+								//$product_title = $lineItem['name'];
 
 								$nutrition_calories = get_post_meta( $variation_id, '_nutrition_calories', true);
 								$nutrition_protein = get_post_meta( $variation_id, '_nutrition_protein', true);
@@ -152,26 +164,57 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 								$regular_price = get_post_meta( $product_id, '_regular_price', true);
 						}
 
+						//Take out  (Monthly Feature) from product title.
+						$search_word = array();
+						$replace_word = array();
+						$search_word[] = '(Monthly Feature)';
+						$replace_word[] = '';
+
+						$product_title = str_replace($search_word, $replace_word, $product_title);
+
+						if($product_title != ''){
+							$product_title = substr($product_title, 0, 75);
+						}
+
+						if($prod_ingredients != ''){
+							$prod_ingredients = substr($prod_ingredients, 0, 200);
+						}
+
 						$order_info['product_id'] = $product_id;
 						$order_info['order_id'] = $order_id;
 						$order_info['ingredients'] = $prod_ingredients;
 						$order_info['product_name'] = $product_title;
+						$order_info['attributes'] = $attribute_level;
 						$order_info['cal'] = $nutrition_calories;
 						$order_info['prot'] = $nutrition_protein;
 						$order_info['carb'] = $nutrition_carb;
 						$order_info['fat'] = $nutrition_fat;
 
-						if(strlen($product_title) > 2){
-								$output_html .= wooprod_build_level_items($order_info);
-								$item_counter += 1;
-								if((($item_counter % 10) === 0) && ($item_counter > 1)){
-										$output_html .= $page_break_html;
+						for($item_quantity_counter = 1; $item_quantity_counter <= $item_quantity; $item_quantity_counter++){
+								if(strlen($product_title) > 2){
+										$print_label_data_arr[] = array(
+											'product_name' => $product_title,
+											'attributes' => $attribute_level,
+											'order_data' => $order_info
+										);
 								}
-						}
+					}
 
 				}
 
 		}
+	}//Retrive order data
+	$item_counter = 0;
+	if(isset($print_label_data_arr) && (count($print_label_data_arr) > 0)){
+			woo_prod_label_array_sort_by_column($print_label_data_arr, 'attributes');
+			foreach ($print_label_data_arr as $key => $label_data) {
+					$order_info = $label_data['order_data'];
+					$output_html .= wooprod_build_level_items($order_info);
+					$item_counter += 1;
+					if((($item_counter % 10) === 0) && ($item_counter > 1)){
+							$output_html .= $page_break_html;
+					}
+			}
 	}
 
 	$output_html .= $output_html_label;
@@ -182,36 +225,75 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 
 }
 
+function woo_prod_label_array_sort_by_column(&$arr, $col, $dir = SORT_ASC) {
+    $sort_col = array();
+    foreach ($arr as $key=> $row) {
+        $sort_col[$key] = $row[$col];
+    }
+
+    array_multisort($sort_col, $dir, $arr);
+}
+
 
 function wooprod_build_level_items($prods){
-
 	$date_next_5 = strtotime("+5 day", time());
 	$date_next_5 = date('M d, Y', $date_next_5);
+
+	if(isset($prods['cal']) && ($prods['cal'] > 0)){
+		$prod_cal = $prods['cal'];
+	}else{
+		$prod_cal = 'n/a';
+	}
+
+	if(isset($prods['prot']) && ($prods['prot'] > 0)){
+		$prod_prot = $prods['prot'];
+	}else{
+		$prod_prot = 'n/a';
+	}
+
+	if(isset($prods['carb']) && ($prods['carb'] > 0)){
+		$prod_carb = $prods['carb'];
+	}else{
+		$prod_carb = 'n/a';
+	}
+
+	if(isset($prods['fat']) && ($prods['fat'] > 0)){
+		$prod_fat = $prods['fat'];
+	}else{
+		$prod_fat = 'n/a';
+	}
+
+
 	$output_html_label = '
+	<div class="print-block-item">
 	<div class="print-block">
-			<div class="block-top">
-				Refrigerate & Consume by:<br />
+		<table class="table-wrap" border="0">
+			<tr>
+			<td class="block-top column-td" width="150">
+					Refrigerate & Consume by:<br />
 					<span class="date-5"><em>'.$date_next_5.'</em></span><br />
 					Freezing Optional
-			</div>
-			<div class="block-content">
-			<table>
-					<tr class="prod-title"><td class="last-td" colspan="4" width="100%">'.$prods['product_name'].'</td></tr>
+			</td>
+			<td class="block-content column-td" width="250">
+			<table class="content-table">
+					<tr class="prod-title"><td class="last-td" colspan="4"> <div class="prod_name">'.$prods['product_name'].'</div><div class="attribute_label">'.$prods['attributes'].'</div></td></tr>
 					<tr class="macro-head"><td>PROTEIN</td><td>CARB</td><td>FAT</td><td class="last-td">CAL</td></tr>
-					<tr class="macro-value"><td>'.$prods['prot'].'</td><td>'.$prods['carb'].'</td><td>'.$prods['fat'].'</td><td class="last-td">'.$prods['cal'].'</td></tr>
-					<tr class="ingredients"><td colspan="4" class="last-td" height="50" valign="top">Ingredients: '.$prods['ingredients'].'</td></tr>
+					<tr class="macro-value"><td>'.$prod_prot.'</td><td>'.$prod_carb.'</td><td>'.$prod_fat.'</td><td class="last-td">'.$prod_cal.'</td></tr>
+					<tr class="ingredients"><td colspan="4" class="last-td" valign="top">Ingredients: '.$prods['ingredients'].'</td></tr>
 			</table>
-			</div>
-			<div class="prod-logo">
+			</td>
+			<td class="prod-logo column-td" width="100">
 					<img width="60" src="'.WOOPRODLABEL_URL.'images/logo.png" alt="" />
-			</div>
+			</td>
+			</tr>
+		</table>
 	</div><!-- print_block -->
+	</div><!-- print-block-item -->
 	';
 
 	return $output_html_label;
 
 }
-
 
 /****
 **Return array of result of generated PDF
@@ -219,10 +301,10 @@ function wooprod_build_level_items($prods){
 function generate_products_label_pdf($output_css, $output_html, $product_id = 0){
   $result = array();
   //https://github.com/fkrauthan/wp-mpdf/tree/master/mpdf
-  $pdf_margin_left = 15;
-  $pdf_margin_right = 15;
-  $pdf_margin_top = 15;
-  $pdf_margin_bottom = 15;
+  $pdf_margin_left = 5;
+  $pdf_margin_right = 5;
+  $pdf_margin_top = 10;
+  $pdf_margin_bottom = 5;
   $pdf_margin_header = 10;
   $pdf_margin_footer = 10;
   $pdf_orientation = 'L';
