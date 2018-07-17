@@ -90,9 +90,9 @@ if ( isset($_POST['woopol_wclabels_nonce']) && (! isset( $_POST['woopol_wclabels
 		 }
 
 		$output_html = wooprod_generate_products_label_html($date_before, $date_after, $order_status);
-
+		//echo $output_html;
 		$output_css = wooprod_generate_products_label_css();
-
+		//echo $output_css;
 		$generate_result = generate_products_label_pdf($output_css, $output_html);
 		if(isset($generate_result['pdf_url'])){
 		  $pdf_file_url = $generate_result['pdf_url'];

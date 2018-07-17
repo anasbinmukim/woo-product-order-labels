@@ -61,8 +61,9 @@ function wooprod_generate_products_label_css(){
 	$font_family = ' font-family: garuda;';
 	$output_css .= 'body{ '.$font_family.'}
 	.label-wrapper{ width: 100%; color: #000; }
-	.print-block-item{ float: left; width: 505px; }
+	.print-block-item{ float: left; width: 377px; }
 	.print-block{ font-size:10px; height: auto; float: left; padding: 5px 5px; background-color: #fff; text-align: center; border-radius: 10px; border: 1px solid #dadada; margin-right: 5px; margin-bottom: 5px; }
+	.coll-right-item .print-block{margin-right:0;}
 	.print-block .table-wrap{ border:none; }
 	.content-table{ border: 1px solid #dadada; width:100%; }
 	.print-block table{ padding: 0; margin: 0px 0; border-spacing:0;}
@@ -72,13 +73,13 @@ function wooprod_generate_products_label_css(){
 	.print-block table .macro-value td{ font-size: 8px; }
 	.print-block table tr td.last-td{ border-right: none; }
 	.print-block table tr.ingredients td{ border-bottom: none; }
-	tr.ingredients td { font-size: 8px; padding: 5px; height: 50px; overflow:hidden; }
+	tr.ingredients td { font-size: 8px; padding: 5px; height: 80px; overflow:hidden; }
 	tr.ingredients td { font-size: 8px; padding: 5px;}
 	.prod-logo{ margin-top: 5px; }
 	.prod-logo img { width: 60px; }
 	.block-top{ font-size: 12px; padding:5px 10px; }
 	tr.prod-title{ background-color: #c45911;}
-	.prod-title td{ font-size: 12px; text-align:center; color: #FFFD38; padding: 5px; width:240px; height:55px; }
+	.prod-title td{ font-size: 12px; text-align:center; color: #FFFD38; padding: 5px; width:100px; height:80px; }
 	.prod_name{ display:block; width: 100%; }
 	.attribute_label{ display:block; width: 100%; }
 	.page-break{box-decoration-break: slice; width: 100%; float:left; clear:both;}
@@ -173,7 +174,7 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 						$product_title = str_replace($search_word, $replace_word, $product_title);
 
 						if($product_title != ''){
-							$product_title = substr($product_title, 0, 75);
+							$product_title = substr($product_title, 0, 60);
 						}
 
 						if($prod_ingredients != ''){
@@ -209,8 +210,8 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 			woo_prod_label_array_sort_by_column($print_label_data_arr, 'attributes');
 			foreach ($print_label_data_arr as $key => $label_data) {
 					$order_info = $label_data['order_data'];
-					$output_html .= wooprod_build_level_items($order_info);
 					$item_counter += 1;
+					$output_html .= wooprod_build_level_items($order_info, $item_counter);
 					if((($item_counter % 10) === 0) && ($item_counter > 1)){
 							$output_html .= $page_break_html;
 					}
@@ -235,7 +236,7 @@ function woo_prod_label_array_sort_by_column(&$arr, $col, $dir = SORT_ASC) {
 }
 
 
-function wooprod_build_level_items($prods){
+function wooprod_build_level_items($prods, $item_counter = 0){
 	$date_next_5 = strtotime("+5 day", time());
 	$date_next_5 = date('M d, Y', $date_next_5);
 
@@ -263,18 +264,23 @@ function wooprod_build_level_items($prods){
 		$prod_fat = 'n/a';
 	}
 
+	$col_right_class = '';
+	if(($item_counter % 2) == 0){
+		$col_right_class = ' coll-right-item ';
+	}
+
 
 	$output_html_label = '
-	<div class="print-block-item">
+	<div class="print-block-item '.$col_right_class.'">
 	<div class="print-block">
 		<table class="table-wrap" border="0">
 			<tr>
-			<td class="block-top column-td" width="150">
+			<td class="block-top column-td" width="100">
 					Refrigerate & Consume by:<br />
 					<span class="date-5"><em>'.$date_next_5.'</em></span><br />
 					Freezing Optional
 			</td>
-			<td class="block-content column-td" width="250">
+			<td class="block-content column-td" width="200">
 			<table class="content-table">
 					<tr class="prod-title"><td class="last-td" colspan="4"> <div class="prod_name">'.$prods['product_name'].'</div><div class="attribute_label">'.$prods['attributes'].'</div></td></tr>
 					<tr class="macro-head"><td>PROTEIN</td><td>CARB</td><td>FAT</td><td class="last-td">CAL</td></tr>
@@ -282,7 +288,7 @@ function wooprod_build_level_items($prods){
 					<tr class="ingredients"><td colspan="4" class="last-td" valign="top">Ingredients: '.$prods['ingredients'].'</td></tr>
 			</table>
 			</td>
-			<td class="prod-logo column-td" width="100">
+			<td class="prod-logo column-td" width="60">
 					<img width="60" src="'.WOOPRODLABEL_URL.'images/logo.png" alt="" />
 			</td>
 			</tr>
@@ -308,8 +314,8 @@ function generate_products_label_pdf($output_css, $output_html, $product_id = 0)
   $pdf_margin_header = 10;
   $pdf_margin_footer = 10;
   $pdf_orientation = 'L';
-  //A4-L
-  $mpdf = new mPDF( 'utf-8', 'Letter-L', '', 'arial', $pdf_margin_left, $pdf_margin_right, $pdf_margin_top, $pdf_margin_bottom, $pdf_margin_header, $pdf_margin_footer, $pdf_orientation );
+  //A4-L, Letter-L
+  $mpdf = new mPDF( 'utf-8', '[216, 280]', '', 'arial', $pdf_margin_left, $pdf_margin_right, $pdf_margin_top, $pdf_margin_bottom, $pdf_margin_header, $pdf_margin_footer, $pdf_orientation );
   $mpdf->WriteHTML( $output_css, 1 );
   $mpdf->WriteHTML($output_html);
 
