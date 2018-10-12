@@ -269,6 +269,7 @@ function wooprod_build_level_items($prods, $item_counter = 0){
 		$col_right_class = ' coll-right-item ';
 	}
 
+	$logo_file_path = ABSPATH . '/wp-content/plugins/woo-product-order-labels/images/logo.png';
 
 	$output_html_label = '
 	<div class="print-block-item '.$col_right_class.'">
@@ -289,7 +290,7 @@ function wooprod_build_level_items($prods, $item_counter = 0){
 			</table>
 			</td>
 			<td class="prod-logo column-td" width="60">
-					<img width="60" src="'.WOOPRODLABEL_URL.'images/logo.png" alt="" />
+					<img width="60" src="'.$logo_file_path.'" alt="" />
 			</td>
 			</tr>
 		</table>
