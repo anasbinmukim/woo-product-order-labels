@@ -62,7 +62,7 @@ function wooprod_generate_products_label_css(){
 	$output_css .= 'body{ '.$font_family.'}
 	.label-wrapper{ width: 100%; color: #000; }
 	.print-block-item{ float: left; width: 377px; }
-	.print-block{ font-size:10px; height: auto; float: left; padding: 5px 5px; background-color: #fff; text-align: center; border-radius: 10px; border: 1px solid #dadada; margin-right: 5px; margin-bottom: 5px; }
+	.print-block{ font-size:10px; height: auto; float: left; padding: 5px 5px; background-color: #fff; text-align: center; border-radius: 10px; border: none; margin-right: 10px; margin-bottom: 10px; }
 	.coll-right-item .print-block{margin-right:0;}
 	.print-block .table-wrap{ border:none; }
 	.content-table{ border: 1px solid #dadada; width:100%; }
@@ -73,13 +73,13 @@ function wooprod_generate_products_label_css(){
 	.print-block table .macro-value td{ font-size: 8px; }
 	.print-block table tr td.last-td{ border-right: none; }
 	.print-block table tr.ingredients td{ border-bottom: none; }
-	tr.ingredients td { font-size: 8px; padding: 5px; height: 80px; overflow:hidden; }
+	tr.ingredients td { font-size: 8px; padding: 5px; height: 70px; overflow:hidden; }
 	tr.ingredients td { font-size: 8px; padding: 5px;}
 	.prod-logo{ margin-top: 5px; }
 	.prod-logo img { width: 60px; }
 	.block-top{ font-size: 12px; padding:5px 10px; }
 	tr.prod-title{ background-color: #c45911;}
-	.prod-title td{ font-size: 12px; text-align:center; color: #FFFD38; padding: 5px; width:100px; height:80px; }
+	.prod-title td{ font-size: 12px; text-align:center; color: #FFFD38; padding: 5px; width:100px; height:70px; }
 	.prod_name{ display:block; width: 100%; }
 	.attribute_label{ display:block; width: 100%; }
 	.page-break{box-decoration-break: slice; width: 100%; float:left; clear:both;}
@@ -123,10 +123,12 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 
 
 	$item_counter = 0;
+	$order_first_name = '';
 	$print_label_data_arr = array();
 	if(isset($orders_data) && (count($orders_data) > 0)){
 		foreach ($orders_data as $key => $order_id) {
 				$order = wc_get_order( $order_id );
+				$order_first_name = $order->get_billing_last_name();
 
 				foreach ($order->get_items() as $key => $lineItem) {
 						$product_title = '';
@@ -141,6 +143,7 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 						$product_title = get_the_title($product_id);
 
 						$attribute_level = '';
+						$variation_id = $item_id;
 
 						if ($lineItem['variation_id']) {
 								$variation_id = $lineItem['variation_id'];
@@ -190,6 +193,10 @@ function wooprod_generate_products_label_html($date_before, $date_after, $order_
 						$order_info['prot'] = $nutrition_protein;
 						$order_info['carb'] = $nutrition_carb;
 						$order_info['fat'] = $nutrition_fat;
+						$order_info['variation_id'] = $variation_id;
+						$order_info['customer_initial'] = $order_first_name;
+
+
 
 						for($item_quantity_counter = 1; $item_quantity_counter <= $item_quantity; $item_quantity_counter++){
 								if(strlen($product_title) > 2){
@@ -269,6 +276,19 @@ function wooprod_build_level_items($prods, $item_counter = 0){
 		$col_right_class = ' coll-right-item ';
 	}
 
+
+	if(isset($prods['variation_id']) && ($prods['variation_id'] > 0)){
+		$prod_variation_id = $prods['variation_id'];
+	}else{
+		$prod_variation_id = '';
+	}
+
+	if(isset($prods['customer_initial']) && ($prods['customer_initial'] != '')){
+		$customer_initial = ', '.$prods['customer_initial'];
+	}else{
+		$customer_initial = '';
+	}
+
 	$logo_file_path = ABSPATH . '/wp-content/plugins/woo-product-order-labels/images/logo.png';
 
 	$output_html_label = '
@@ -280,6 +300,7 @@ function wooprod_build_level_items($prods, $item_counter = 0){
 					Refrigerate & Consume by:<br />
 					<span class="date-5"><em>'.$date_next_5.'</em></span><br />
 					Freezing Optional
+					<br /><br />'.$prod_variation_id.''.$customer_initial.'
 			</td>
 			<td class="block-content column-td" width="200">
 			<table class="content-table">
@@ -308,9 +329,9 @@ function wooprod_build_level_items($prods, $item_counter = 0){
 function generate_products_label_pdf($output_css, $output_html, $product_id = 0){
   $result = array();
   //https://github.com/fkrauthan/wp-mpdf/tree/master/mpdf
-  $pdf_margin_left = 5;
-  $pdf_margin_right = 5;
-  $pdf_margin_top = 10;
+  $pdf_margin_left = 7;
+  $pdf_margin_right = 3;
+  $pdf_margin_top = 15;
   $pdf_margin_bottom = 5;
   $pdf_margin_header = 10;
   $pdf_margin_footer = 10;
